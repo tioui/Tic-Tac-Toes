@@ -7,36 +7,40 @@ note
 class
 	GRID
 
+inherit
+	PANEL
+		rename
+			make as make_panel
+		end
+
 create
 	make
 
 feature -- Initialization
 
-	make(a_images_factory:IMAGES_FACTORY; a_x, a_y, a_width, a_height:INTEGER)
+	make(a_ressources_factory:RESSOURCES_FACTORY; a_x, a_y, a_width, a_height:INTEGER)
 			-- Initialization of `Current' with `a_x', `a_y', `a_width' and `a_height' as `bound' values
+			-- and using `a_ressources_factory' to get image ressources
 		local
 			l_marks_list:ARRAYED_LIST[detachable MARKS]
 		do
-			images_factory := a_images_factory
-			image := a_images_factory.panel
-			bound := [a_x, a_y, a_width, a_height]
-			create default_o_mark.make (a_images_factory, True)
-			create default_x_mark.make (a_images_factory, False)
+			make_panel(a_x, a_y, a_width, a_height)
+			ressources_factory := a_ressources_factory
+			image := a_ressources_factory.grid_image
+			create default_o_mark.make (a_ressources_factory, True)
+			create default_x_mark.make (a_ressources_factory, False)
 			create {ARRAYED_LIST[LIST[detachable MARKS]]} marks.make (3)
 			across 1 |..| 3 as la_list_index loop
 				create l_marks_list.make_filled (3)
 				marks.extend (l_marks_list)
 			end
-			has_last_selected := False
+			last_selected_cell := Void
 			has_o_won := False
 			has_x_won := False
 			winning_index := 0
 		end
 
 feature -- Access
-
-	bound:TUPLE[x, y, width, height:INTEGER]
-			-- Where to draw `Current'
 
 	marks:LIST[LIST[detachable MARKS]]
 			-- The {MARKS} that the players have put in `Current'
@@ -111,7 +115,7 @@ feature -- Access
 		local
 			l_x_index, l_y_index:INTEGER
 		do
-			has_last_selected := False
+			last_selected_cell := Void
 			if winning_index = 0 and a_x > bound.x and a_x < bound.x + bound.width and a_y > bound.y and a_y < bound.y + bound.height then
 				l_x_index := ((a_x - bound.x) // (bound.width // 3)) + 1
 				l_y_index := ((a_y - bound.y) // (bound.height // 3)) + 1
@@ -122,7 +126,7 @@ feature -- Access
 				and then
 					marks.at (l_y_index).at (l_x_index) = Void
 				then
-					has_last_selected := True
+					last_selected_cell := [l_y_index, l_x_index]
 					if a_o_turn then
 						marks.at (l_y_index).at (l_x_index) := default_o_mark
 					else
@@ -133,8 +137,10 @@ feature -- Access
 			end
 		end
 
-	has_last_selected:BOOLEAN
-			-- Indicate if a valid cell has been selected by the last call to `select_cell'
+
+	last_selected_cell:detachable TUPLE[y, x:INTEGER]
+			-- Indicate the indexes of the cell selected by the last call to `select_cell'.
+			-- Void if no cell selected
 
 
 	has_o_won:BOOLEAN
@@ -143,36 +149,50 @@ feature -- Access
 	has_x_won:BOOLEAN
 			-- The player X has won the game
 
+	is_full:BOOLEAN
+			-- Every cell of `Current' has been used
+		do
+			Result := across marks as la_marks_list all
+								across la_marks_list.item as la_marks all attached la_marks.item end
+						end
+		end
+
 feature {NONE} -- Implementation
 
 	valid_winner
 			-- Valid if there is a winning combinaision. If so, set `has_o_won' or `has_x_won'
+		local
+			l_winning_marks:detachable MARKS
 		do
 			across 1 |..| 3 as la_index loop
 				if marks.at (la_index.item).at (1) = marks.at (la_index.item).at (2) and marks.at (la_index.item).at (1) = marks.at (la_index.item).at (3) then
 					if attached marks.at (la_index.item).at (1) as la_marks then
 						winning_index := la_index.item
-						has_o_won := la_marks.is_o
-						has_x_won := la_marks.is_x
+						l_winning_marks := la_marks
 					end
 				end
 				if marks.at (1).at (la_index.item) = marks.at (2).at (la_index.item) and marks.at (1).at (la_index.item) = marks.at (3).at (la_index.item) then
 					if attached marks.at (1).at (la_index.item) as la_marks then
 						winning_index := la_index.item + 3
-						has_o_won := la_marks.is_o
-						has_x_won := la_marks.is_x
+						l_winning_marks := la_marks
 					end
 				end
 			end
 			if marks.at (1).at (1) = marks.at (2).at (2) and marks.at (1).at (1) = marks.at (3).at (3) then
-				if attached marks.at (1).at (1) then
+				if attached marks.at (1).at (1) as la_marks then
 					winning_index := 7
+					l_winning_marks := la_marks
 				end
 			end
 			if marks.at (2).at (2) = marks.at (1).at (3) and marks.at (2).at (2) = marks.at (3).at (1) then
-				if attached marks.at (2).at (2) then
+				if attached marks.at (2).at (2) as la_marks then
+					l_winning_marks := la_marks
 					winning_index := 8
 				end
+			end
+			if attached l_winning_marks as la_marks then
+				has_o_won := la_marks.is_o
+				has_x_won := la_marks.is_x
 			end
 		end
 
@@ -185,36 +205,36 @@ feature {NONE} -- Implementation
 			l_old_target := a_renderer.target
 			l_old_color := a_renderer.drawing_color
 			if winning_index >= 1 and winning_index <= 3 then
-				create_winning_image_target(a_renderer, images_factory.win.pixel_format, images_factory.win.height, images_factory.win.width)
+				create_winning_image_target(a_renderer, ressources_factory.winning_image.pixel_format, ressources_factory.winning_image.height, ressources_factory.winning_image.width)
 				a_renderer.draw_sub_texture_with_scale_rotation_and_mirror (
-									images_factory.win, 0, 0, images_factory.win.width, images_factory.win.height, 0,
-									images_factory.win.width, images_factory.win.width, images_factory.win.height, 0, 0,
+									ressources_factory.winning_image, 0, 0, ressources_factory.winning_image.width, ressources_factory.winning_image.height, 0,
+									ressources_factory.winning_image.width, ressources_factory.winning_image.width, ressources_factory.winning_image.height, 0, 0,
 									-90, False, False
 								)
 			elseif winning_index >= 4 and winning_index <= 6 then
-				win_image := images_factory.win
+				win_image := ressources_factory.winning_image
 			elseif winning_index = 7 then
 				create_winning_image_target(
-								a_renderer, images_factory.win.pixel_format,
-								images_factory.win.height + (images_factory.win.width // 2),
-								images_factory.win.height + (images_factory.win.width // 2)
+								a_renderer, ressources_factory.winning_image.pixel_format,
+								ressources_factory.winning_image.height + (ressources_factory.winning_image.width // 2),
+								ressources_factory.winning_image.height + (ressources_factory.winning_image.width // 2)
 							)
 				a_renderer.draw_sub_texture_with_scale_rotation_and_mirror (
-									images_factory.win, 0, 0, images_factory.win.width, images_factory.win.height, 0,
-									images_factory.win.width // 2, images_factory.win.width,
-									{DOUBLE_MATH}.sqrt ((images_factory.win.height * images_factory.win.height) * 2).floor, 0, 0,
+									ressources_factory.winning_image, 0, 0, ressources_factory.winning_image.width, ressources_factory.winning_image.height, 0,
+									ressources_factory.winning_image.width // 2, ressources_factory.winning_image.width,
+									{DOUBLE_MATH}.sqrt ((ressources_factory.winning_image.height * ressources_factory.winning_image.height) * 2).floor, 0, 0,
 									-45, False, False
 								)
 			elseif winning_index = 8 then
 				create_winning_image_target(
-								a_renderer, images_factory.win.pixel_format,
-								images_factory.win.height + (images_factory.win.width // 2),
-								images_factory.win.height + (images_factory.win.width // 2)
+								a_renderer, ressources_factory.winning_image.pixel_format,
+								ressources_factory.winning_image.height + (ressources_factory.winning_image.width // 2),
+								ressources_factory.winning_image.height + (ressources_factory.winning_image.width // 2)
 							)
 				a_renderer.draw_sub_texture_with_scale_rotation_and_mirror (
-									images_factory.win, 0, 0, images_factory.win.width, images_factory.win.height, images_factory.win.width // 2,
-									images_factory.win.height + images_factory.win.width // 2, images_factory.win.width,
-									{DOUBLE_MATH}.sqrt ((images_factory.win.height * images_factory.win.height) * 2).floor, 0, 0,
+									ressources_factory.winning_image, 0, 0, ressources_factory.winning_image.width, ressources_factory.winning_image.height, ressources_factory.winning_image.width // 2,
+									ressources_factory.winning_image.height + ressources_factory.winning_image.width // 2, ressources_factory.winning_image.width,
+									{DOUBLE_MATH}.sqrt ((ressources_factory.winning_image.height * ressources_factory.winning_image.height) * 2).floor, 0, 0,
 									-135, False, False
 								)
 			end
@@ -250,11 +270,11 @@ feature {NONE} -- Implementation
 			-- 4 to 6 means column victory
 			-- 7 and 8 means diagonal
 
-	images_factory:IMAGES_FACTORY
+	ressources_factory:RESSOURCES_FACTORY
 			-- The factory that generate image ressources
 
 
 invariant
-	Winning_Means_index: (has_o_won or has_o_won) implies ((winning_index >= 1) and (winning_index <= 8))
-	Index_Means_Winning: (winning_index /= 0) implies (has_o_won or has_o_won)
+	Winning_Means_index: (has_o_won or has_x_won) implies ((winning_index >= 1) and (winning_index <= 8))
+	Index_Means_Winning: (winning_index /= 0) implies (has_o_won or has_x_won)
 end

@@ -12,15 +12,15 @@ create
 
 feature {NONE} -- Initialization
 
-	make(a_images_factory:IMAGES_FACTORY; a_is_o:BOOLEAN)
-			-- Initialization of `Current' using `a_image_factory' to get `image'. If `a_is_o'
+	make(a_ressources_factory:RESSOURCES_FACTORY; a_is_o:BOOLEAN)
+			-- Initialization of `Current' using `a_ressources_factory' to get `image'. If `a_is_o'
 			-- is set, `Current' will be a mark of player O. If not, it will be player X.
 		do
 			is_o := a_is_o
 			if a_is_o then
-				image := a_images_factory.o
+				image := a_ressources_factory.o_image
 			else
-				image := a_images_factory.x
+				image := a_ressources_factory.x_image
 			end
 		end
 

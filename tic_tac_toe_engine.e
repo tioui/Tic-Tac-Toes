@@ -20,17 +20,22 @@ feature {NONE} -- Initializaton
 		local
 			l_window_builder:GAME_WINDOW_RENDERED_BUILDER
 		do
+			is_o_first_next := True
 			l_window_builder.is_resizable := True
 			l_window_builder.must_renderer_support_texture_target := True
 			window := l_window_builder.generate_window
 			window.renderer.set_drawing_color (create {GAME_COLOR}.make_rgb (255, 255, 255))
-			create images_factory.make (window.renderer, window.pixel_format)
-			has_error := images_factory.has_error
+			create ressources_factory.make (window.renderer, window.pixel_format)
+			has_error := ressources_factory.has_error
 			if not has_error then
-				create grid.make(images_factory, 0, 0, images_factory.panel.width, images_factory.panel.height)
-				window.renderer.set_logical_size (images_factory.panel.width, images_factory.panel.height)
+				reset
+				window.renderer.set_logical_size (
+									ressources_factory.grid_image.width,
+									ressources_factory.grid_image.height + (ressources_factory.grid_image.height // 5)
+								)
 			else
-				create grid.make(images_factory, 0, 0, 1, 1)
+				create grid.make(ressources_factory, 0, 0, 1, 1)
+				create informations_panel.make (ressources_factory, 0, 0, 1, 1)
 			end
 
 		end
@@ -46,7 +51,6 @@ feature -- Access
 			window.expose_actions.extend (agent on_redraw)
 			window.mouse_button_released_actions.extend (agent on_mouse_released)
 			on_redraw(game_library.time_since_create)
-			is_o_turn := True
 			game_library.launch
 			game_library.clear_all_events
 		end
@@ -59,10 +63,13 @@ feature {NONE} -- Implementation
 	grid:GRID
 			-- The Tic Tac Toe game grid
 
+	informations_panel:INFORMATIONS_PANEL
+			-- {PANEL} used for drawing informations about the game.
+
 	window:GAME_WINDOW_RENDERED
 			-- The game window
 
-	images_factory: IMAGES_FACTORY
+	ressources_factory: RESSOURCES_FACTORY
 			-- Factory that generate the game images
 
 	is_o_turn:BOOLEAN
@@ -73,6 +80,7 @@ feature {NONE} -- Implementation
 		do
 			window.renderer.clear
 			grid.draw(window.renderer)
+			informations_panel.draw (window.renderer)
 			window.update
 		end
 
@@ -86,12 +94,43 @@ feature {NONE} -- Implementation
 			-- When a player click on the window.
 		do
 			if a_mouse_state.is_left_button_released then
-				grid.select_cell (is_o_turn, a_mouse_state.x, a_mouse_state.y)
-				if grid.has_last_selected then
-					is_o_turn := not is_o_turn
+				if grid.has_o_won or grid.has_x_won or grid.is_full then
+					reset
+				else
+					grid.select_cell (is_o_turn, a_mouse_state.x, a_mouse_state.y)
+					if attached grid.last_selected_cell then
+						if grid.is_full then
+							informations_panel.set_draw
+						elseif grid.has_o_won then
+							informations_panel.set_winner (True)
+						elseif grid.has_x_won then
+							informations_panel.set_winner (False)
+						else
+							is_o_turn := not is_o_turn
+							informations_panel.set_player_turn(is_o_turn)
+						end
+					end
 				end
 				on_redraw(a_timestamp)
 			end
 		end
+
+	reset
+			-- Restart the game by inversing the first player to mark.
+		do
+			create grid.make (ressources_factory, 0, 0, ressources_factory.grid_image.width, ressources_factory.grid_image.height)
+			create informations_panel.make (
+								ressources_factory, 0,
+								ressources_factory.grid_image.height + 1,
+								ressources_factory.grid_image.width,
+								(ressources_factory.grid_image.height // 5)
+							)
+			is_o_turn := is_o_first_next
+			informations_panel.set_player_turn(is_o_turn)
+			is_o_first_next := not is_o_first_next
+		end
+
+	is_o_first_next:BOOLEAN
+			-- If True, O will start the next game; X if False.
 
 end
