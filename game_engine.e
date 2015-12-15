@@ -61,18 +61,60 @@ feature {NONE} -- Implementation
 		end
 
 	on_mouse_released(a_timestamp: NATURAL_32; a_mouse_state: GAME_MOUSE_BUTTON_RELEASED_STATE; a_nb_clicks: NATURAL_8)
-			-- When a player click on the window.
-		deferred
+			-- <Precursor>
+		do
+			if a_mouse_state.is_left_button_released then
+				if grid.has_o_won or grid.has_x_won or grid.is_full then
+					reset
+					if attached ai as la_ai and then is_o_turn = la_ai.is_o then
+						on_redraw(a_timestamp)
+						la_ai.play(grid)
+						end_turn
+					end
+				else
+					grid.select_cell_at (is_o_turn, a_mouse_state.x, a_mouse_state.y)
+					if attached grid.last_selected_cell then
+						end_turn
+						if not grid.is_full and not grid.has_o_won and not grid.has_x_won then
+							if attached ai as la_ai and then is_o_turn = la_ai.is_o then
+								on_redraw(a_timestamp)
+								la_ai.play(grid)
+								end_turn
+							end
+						end
+					end
+				end
+				on_redraw(a_timestamp)
+			end
 		end
 
 	end_turn
-			-- When a player has selected a `grid' cell
-		deferred
+			-- <Precursor>
+		do
+			if grid.has_o_won then
+				informations_panel.set_winner (True)
+			elseif grid.has_x_won then
+				informations_panel.set_winner (False)
+			elseif grid.is_full then
+				informations_panel.set_draw
+			else
+				is_o_turn := not is_o_turn
+				informations_panel.set_player_turn(is_o_turn)
+			end
 		end
 
 	reset
-			-- Restart the game by inversing the first player to mark.
-		deferred
+			-- <Precursor>
+		do
+			create informations_panel.make (
+								ressources_factory, 0,
+								ressources_factory.grid_image.height + 1,
+								ressources_factory.grid_image.width,
+								(ressources_factory.grid_image.height // 5)
+							)
+			is_o_turn := is_o_first_next
+			informations_panel.set_player_turn(is_o_turn)
+			is_o_first_next := not is_o_first_next
 		end
 
 	is_o_first_next:BOOLEAN
@@ -82,5 +124,5 @@ feature {NONE} -- Implementation
 			-- If attached, the player is against an artifical intelligence
 		deferred
 		end
-		
+
 end
