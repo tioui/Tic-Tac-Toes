@@ -1,11 +1,11 @@
 note
-	description: "A game engine to manage a Tic_Tac_Toe game"
+	description: "A {GAME_ENGINE} to manage an Ultimate Tic Tac Toe game."
 	author: "Louis Marchand"
-	date: "Sun, 06 Dec 2015 22:12:04 +0000"
+	date: "Tue, 15 Dec 2015 01:16:44 +0000"
 	revision: "1.0"
 
 class
-	TIC_TAC_TOE_ENGINE
+	ULTIMATE_ENGINE
 
 inherit
 	GAME_ENGINE
@@ -13,6 +13,7 @@ inherit
 create
 	make,
 	make_with_ai
+
 
 feature {NONE} -- Initializaton
 
@@ -23,17 +24,16 @@ feature {NONE} -- Initializaton
 			make(a_window, a_ressources_factory)
 			create ai.make (False)
 		end
-
 feature {NONE} -- Implementation
 
-	grid:TIC_TAC_TOE_GRID
+	grid:ULTIMATE_GRID
 			-- <Precursor>
 
 	on_mouse_released(a_timestamp: NATURAL_32; a_mouse_state: GAME_MOUSE_BUTTON_RELEASED_STATE; a_nb_clicks: NATURAL_8)
 			-- <Precursor>
 		do
 			if a_mouse_state.is_left_button_released then
-				if grid.has_o_won or grid.has_x_won or grid.is_full then
+				if grid.has_o_won or grid.has_x_won or grid.is_draw then
 					reset
 					if attached ai as la_ai and then is_o_turn = la_ai.is_o then
 						on_redraw(a_timestamp)
@@ -44,7 +44,7 @@ feature {NONE} -- Implementation
 					grid.select_cell_at (is_o_turn, a_mouse_state.x, a_mouse_state.y)
 					if attached grid.last_selected_cell then
 						end_turn
-						if not grid.is_full and not grid.has_o_won and not grid.has_x_won then
+						if not grid.is_draw and not grid.has_o_won and not grid.has_x_won then
 							if attached ai as la_ai and then is_o_turn = la_ai.is_o then
 								on_redraw(a_timestamp)
 								la_ai.play(grid)
@@ -60,7 +60,7 @@ feature {NONE} -- Implementation
 	end_turn
 			-- <Precursor>
 		do
-			if grid.is_full then
+			if grid.is_draw then
 				informations_panel.set_draw
 			elseif grid.has_o_won then
 				informations_panel.set_winner (True)
@@ -87,7 +87,7 @@ feature {NONE} -- Implementation
 			is_o_first_next := not is_o_first_next
 		end
 
-	ai:detachable TIC_TAC_TOE_AI
+	ai:detachable ULTIMATE_AI
 			-- <Precursor>
 
 end

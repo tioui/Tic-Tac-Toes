@@ -88,8 +88,11 @@ feature {NONE} -- Initialization
 			l_game_engine:GAME_ENGINE
 		do
 			if a_is_ultimate then
-				-- ToDo
-				create {TIC_TAC_TOE_ENGINE}l_game_engine.make (a_window, a_ressources_factory)
+				if a_with_ai then
+					create {ULTIMATE_ENGINE}l_game_engine.make_with_ai (a_window, a_ressources_factory)
+				else
+					create {ULTIMATE_ENGINE}l_game_engine.make (a_window, a_ressources_factory)
+				end
 			else
 				if a_with_ai then
 					create {TIC_TAC_TOE_ENGINE}l_game_engine.make_with_ai (a_window, a_ressources_factory)

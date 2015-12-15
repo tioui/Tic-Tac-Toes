@@ -29,14 +29,6 @@ feature {NONE} -- Initializaton
 						)
 		end
 
-	make_with_ai(a_window:GAME_WINDOW_RENDERED; a_ressources_factory:RESSOURCES_FACTORY)
-			-- Initialization of `Current' using `a_window' as `window' and `a_ressources_factory'
-			-- as `ressources_factory'. The player is against an `ai'
-		do
-			make(a_window, a_ressources_factory)
-			create ai.make (False)
-		end
-
 feature -- Access
 
 	run
@@ -86,6 +78,9 @@ feature {NONE} -- Implementation
 	is_o_first_next:BOOLEAN
 			-- If True, O will start the next game; X if False.
 
-	ai:detachable TIC_TAC_TOE_AI
+	ai:detachable AI
 			-- If attached, the player is against an artifical intelligence
+		deferred
+		end
+		
 end

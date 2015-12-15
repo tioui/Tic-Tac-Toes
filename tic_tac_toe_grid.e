@@ -59,7 +59,12 @@ feature -- Access
 				j := 0
 				across la_marks_list.item as la_marks loop
 					if attached la_marks.item as la_mark then
-						la_mark.draw (a_renderer, l_marks_width * j, l_marks_height * i, l_marks_width, l_marks_height)
+						la_mark.draw (
+								a_renderer,
+								bound.x + (l_marks_width * j),
+								bound.y + (l_marks_height * i),
+								l_marks_width, l_marks_height
+							)
 					end
 					j := j + 1
 				end
@@ -79,17 +84,17 @@ feature -- Access
 					if winning_index >= 1 and winning_index <= 3 then
 						a_renderer.draw_sub_texture_with_scale (
 										la_win_image, 0, 0, la_win_image.width, la_win_image.height,
-										(bound.width // 6), (winning_index - 1) * (bound.height // 3) + (bound.height // 9), 4 * (bound.width // 6), (bound.height // 8)
+										bound.x + (bound.width // 6), bound.y + ((winning_index - 1) * (bound.height // 3) + (bound.height // 9)), 4 * (bound.width // 6), (bound.height // 8)
 									)
 					elseif winning_index >= 4 and winning_index <= 6 then
 						a_renderer.draw_sub_texture_with_scale (
 										la_win_image, 0, 0, la_win_image.width, la_win_image.height,
-										(winning_index - 4) * (bound.width // 3) + (bound.width // 9), (bound.height // 6), (bound.width // 8), 4 * (bound.height // 6)
+										bound.x + ((winning_index - 4) * (bound.width // 3) + (bound.width // 9)), bound.y + (bound.height // 6), (bound.width // 8), 4 * (bound.height // 6)
 									)
 					elseif winning_index >= 7 then
 						a_renderer.draw_sub_texture_with_scale (
 										la_win_image, 0, 0, la_win_image.width, la_win_image.height,
-										(bound.width // 9), (bound.height // 9), 7 * (bound.width // 9), 7 * (bound.height // 9)
+										bound.x + (bound.width // 9), bound.y + (bound.height // 9), 7 * (bound.width // 9), 7 * (bound.height // 9)
 									)
 					end
 				end
@@ -107,9 +112,15 @@ feature -- Access
 		local
 			l_x_index, l_y_index:INTEGER
 		do
-			l_x_index := ((a_x - bound.x) // (bound.width // 3)) + 1
-			l_y_index := ((a_y - bound.y) // (bound.height // 3)) + 1
-			select_cell(a_o_turn, l_y_index, l_x_index)
+			last_selected_cell := Void
+			if
+				a_x >= bound.x and a_x <= bound.x + bound.width and
+				a_y >= bound.y and a_y <= bound.y + bound.height
+			then
+				l_x_index := ((a_x - bound.x) // (bound.width // 3)) + 1
+				l_y_index := ((a_y - bound.y) // (bound.height // 3)) + 1
+				select_cell(a_o_turn, l_y_index, l_x_index)
+			end
 		end
 
 	select_cell(a_o_turn:BOOLEAN; a_line, a_column:INTEGER)
@@ -138,12 +149,6 @@ feature -- Access
 				end
 			end
 		end
-
-
-	last_selected_cell:detachable TUPLE[y, x:INTEGER]
-			-- Indicate the indexes of the cell selected by the last call to `select_cell_at'.
-			-- Void if no cell selected
-
 
 	has_o_won:BOOLEAN
 			-- The player O has won the game

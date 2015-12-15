@@ -58,6 +58,31 @@ feature -- Access
 								)
 		end
 
+	select_cell_at(a_o_turn:BOOLEAN; a_x, a_y:INTEGER)
+			-- Select the cell at position (`a_x',`a_y').
+			-- If `a_o_turn' is set, it is the O player
+			-- that have launch the select, X if not.
+		deferred
+		end
+
+	select_cell(a_o_turn:BOOLEAN; a_line, a_column:INTEGER)
+			-- Select the cell `a_line',`a_column'.
+			-- If `a_o_turn' is set, it is the O player
+			-- that have launch the select, X if not.
+		deferred
+		end
+
+
+	last_selected_cell:detachable TUPLE[line, column:INTEGER]
+			-- Indicate the indexes of the cell selected by the last call to `select_cell_at'
+			-- and `select_cell'. Void if no cell selected
+
+	clear_last_selected_cell
+			-- Remove the `last_selected_cell'
+		do
+			last_selected_cell := Void
+		end
+
 feature {NONE} -- Implementation
 
 	ressources_factory:RESSOURCES_FACTORY
