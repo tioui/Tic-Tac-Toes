@@ -33,7 +33,6 @@ feature -- Access
 			-- <Precursor>
 		local
 			l_mark_width, l_informations_width:INTEGER
-			l_text_position:TUPLE[x, y:INTEGER]
 		do
 			if attached text_surface as la_surface and not attached text_texture then
 				create text_texture.make_from_surface (a_renderer, la_surface)
@@ -80,7 +79,7 @@ feature -- Access
 		end
 
 	set_draw
-			-- The game has ended because the {GRID} is full, but no player won
+			-- The game has ended because the {TIC_TAC_TOE_GRID} is full, but no player won
 		do
 			set_text("Draw!")
 			image_player_texture := Void

@@ -7,6 +7,9 @@ note
 class
 	MARKS
 
+inherit
+	GRID_ITEM
+
 create
 	make
 
