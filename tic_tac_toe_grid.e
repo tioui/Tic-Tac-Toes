@@ -127,8 +127,6 @@ feature -- Access
 			-- Select the cell `a_line',`a_column'.
 			-- If `a_o_turn' is set, it is the O player
 			-- that have launch the select, X if not.
-		local
-			l_x_index, l_y_index:INTEGER
 		do
 			last_selected_cell := Void
 			if winning_index = 0 then
@@ -207,7 +205,7 @@ feature {NONE} -- Implementation
 			-- Create the `win_image' depending of the type of winning (see: `winning_index').
 		local
 			l_old_target: GAME_RENDER_TARGET
-			l_old_color:GAME_COLOR
+			l_old_color:GAME_COLOR_READABLE
 		do
 			l_old_target := a_renderer.target
 			l_old_color := a_renderer.drawing_color
@@ -254,9 +252,9 @@ feature {NONE} -- Implementation
 			-- using `a_format' as pixel format.
 			-- Note: Change the rendering `target' of `a_renderer'
 		local
-			l_target:GAME_TEXTURE
+			l_target:GAME_TEXTURE_TARGET
 		do
-			create l_target.make_target (a_renderer, a_format, a_width, a_height)
+			create l_target.make (a_renderer, a_format, a_width, a_height)
 			l_target.enable_alpha_blending
 			a_renderer.set_target (l_target)
 			a_renderer.set_drawing_color (create {GAME_COLOR}.make (0, 0, 0, 0))

@@ -20,7 +20,6 @@ feature -- Access
 		local
 			l_has_selected:BOOLEAN
 			i, j:INTEGER
-			l_grid:TIC_TAC_TOE_GRID
 		do
 			from
 				i := 1

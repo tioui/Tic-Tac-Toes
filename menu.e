@@ -40,6 +40,7 @@ feature -- Access
 		end
 
 	selected_item:INTEGER
+			-- The index of the selected element in `items'
 
 feature {NONE} -- Implementation
 

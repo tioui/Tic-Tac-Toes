@@ -86,9 +86,6 @@ feature -- Access
 
 	draw(a_renderer:GAME_RENDERER)
 			-- <Precursor>
-		local
-			l_tier_width, l_tier_height:INTEGER
-			l_color_backup:GAME_COLOR
 		do
 			draw_playing_background(a_renderer)
 			Precursor {GRID}(a_renderer)
@@ -103,8 +100,8 @@ feature -- Access
 			-- Draw on `a_renderer' the backround of the sub grid to play into
 		local
 			l_tier_width, l_tier_height:INTEGER
-			l_color_backup:GAME_COLOR
-			grid_to_play_backup:TUPLE[line, column:INTEGER]
+			l_color_backup:GAME_COLOR_READABLE
+			l_grid_to_play_backup:TUPLE[line, column:INTEGER]
 		do
 			if grid_to_play.line > 0 and grid_to_play.column > 0 then
 				l_tier_width := bound.width // 3
@@ -118,14 +115,14 @@ feature -- Access
 								)
 				a_renderer.set_drawing_color (l_color_backup)
 			else
-				grid_to_play_backup := grid_to_play
+				l_grid_to_play_backup := grid_to_play
 				across 1 |..| 3 as la_i loop
 					across 1 |..| 3 as la_j loop
 						grid_to_play := [la_i.item, la_j.item]
 						draw_playing_background(a_renderer)
 					end
 				end
-				grid_to_play := grid_to_play_backup
+				grid_to_play := l_grid_to_play_backup
 			end
 		end
 
@@ -168,10 +165,6 @@ feature -- Access
 
 	select_cell(a_o_turn:BOOLEAN; a_line, a_column:INTEGER)
 			-- <Precursor>
-		local
-			l_i, l_j:INTEGER
-			l_selected:BOOLEAN
-			l_selected_cell:detachable TUPLE[line, column:INTEGER]
 		do
 			clear_last_selected_cell
 			if grid_to_play.line = 0 and grid_to_play.column = 0 then

@@ -1,8 +1,8 @@
 note
-	description: "Summary description for {AI}."
-	author: ""
-	date: "$Date$"
-	revision: "$Revision$"
+	description: "A very poor artifical intelligence (ToDo)."
+	author: "Louis Marchand"
+	date: "Tue, 07 Apr 2020 18:35:18 +0000"
+	revision: "0.1"
 
 deferred class
 	AI
@@ -11,6 +11,7 @@ deferred class
 feature {NONE} -- Initialization
 
 	make(a_is_o:BOOLEAN)
+			-- Initialisation of `Current' using `a_is_o' as `is_o'.
 		do
 			is_o := a_is_o
 		end
